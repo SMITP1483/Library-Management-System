@@ -1,20 +1,26 @@
 package org.example.librarymanagementsystem.DTO;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class BorrowedRecordDTO {
+
 
     @NotNull(message = "Book ISBN cannot be null")
     private String bookIsbnNo;
 
     @NotNull(message = "User ID cannot be null")
-    private Long userId;
+    @Valid
+    private UserDetailsDTO userDetails;
 
     @NotNull(message = "Borrowed date cannot be null")
     private Date borrowedDate;
@@ -23,9 +29,9 @@ public class BorrowedRecordDTO {
 
     private boolean isReturned;
 
-    public BorrowedRecordDTO(String bookIsbnNo, Long userId, Date borrowedDate) {
+    public BorrowedRecordDTO(String bookIsbnNo, UserDetailsDTO userDetails, Date borrowedDate) {
         this.bookIsbnNo = bookIsbnNo;
-        this.userId = userId;
+        this.userDetails = userDetails;
         this.borrowedDate = borrowedDate;
         this.isReturned = false;  // Defaults to false when creating a new record
         this.returnedDate = null; // Defaults to null initially
