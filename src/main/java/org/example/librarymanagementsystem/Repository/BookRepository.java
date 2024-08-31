@@ -19,6 +19,6 @@ public interface BookRepository extends JpaRepository<Books, String> {
 
     @Transactional
     @Modifying
-    @Query("UPDATE  Books b SET b.isAvailable = false WHERE b.isbnNo = :ISBN")
-    int updateBookAvailableStatus(String ISBN);
+    @Query("UPDATE  Books b SET b.isAvailable = :isAvailable WHERE b.isbnNo = :ISBN")
+    int updateBookAvailableStatus(String ISBN, boolean isAvailable);
 }

@@ -5,6 +5,7 @@ import org.example.librarymanagementsystem.DAO.Books;
 import org.example.librarymanagementsystem.DTO.BorrowedRecordDTO;
 import org.example.librarymanagementsystem.DTO.UserDetailsDTO;
 import org.example.librarymanagementsystem.ExceptionHandler.BookNotAvailableException;
+import org.example.librarymanagementsystem.ExceptionHandler.BookNotFoundException;
 import org.example.librarymanagementsystem.Repository.BookRepository;
 import org.example.librarymanagementsystem.Repository.UserDetailsRepository;
 import org.example.librarymanagementsystem.Service.BorrowRecordService;
@@ -39,13 +40,11 @@ public class BorrowBookController {
     public ResponseEntity<String> borrowBook(@Valid @RequestBody BorrowedRecordDTO borrowedRecordDTO) {
         try {
             Books book = bookRepository.findByIsbnNo(borrowedRecordDTO.getBookIsbnNo());
+
+            if (book == null)
+                throw new BookNotFoundException("Book not found");
+
             UserDetailsDTO userDetailsDTO = borrowedRecordDTO.getUserDetails();
-
-            // Check if the book is null or not
-            if (book == null) {
-                throw new BookNotAvailableException("Book with ISBN " + borrowedRecordDTO.getBookIsbnNo() + " not found.");
-            }
-
 
             return ResponseEntity.status(HttpStatus.OK).body(borrowRecordService.borrowBook(book, userDetailsDTO, borrowedRecordDTO.getBorrowedDate()));
 

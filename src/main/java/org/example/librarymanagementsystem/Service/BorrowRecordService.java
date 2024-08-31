@@ -44,7 +44,7 @@ public class BorrowRecordService {
         }
 
         borrowRecordRepository.save(new BorrowedRecord(book, userDetails, borrowedDate));
-        bookRepository.updateBookAvailableStatus(book.getIsbnNo());
+        bookRepository.updateBookAvailableStatus(book.getIsbnNo(), false);
         return "Book Borrowed";
     }
 
