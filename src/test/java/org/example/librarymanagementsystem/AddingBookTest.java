@@ -44,16 +44,31 @@ public class AddingBookTest {
 
 
     @Test
-    void testAddBook_InvalidISBN_ShouldReturnBadRequest() throws Exception {
+    void testAddBookDetails_InvalidISBN_ShouldReturnBadRequest() throws Exception {
         //Using an Invalid ISBN No. Format to test validation failure
-        BooksDTO booksDTO = new BooksDTO("0-123-45678-9", "KGF", "Harper Lee", 1960, true);
+        BooksDTO booksDTO = new BooksDTO("0-12678-9", "KGF", "Harper Lee", 1960, true);
 
         // Validating the BooksDTO object
         Set<ConstraintViolation<BooksDTO>> violations = validator.validate(booksDTO);
 
-        // The test won't pass if there are invalid ISBN no. format
-        assertFalse(violations.isEmpty(), violations.toString());
+        assertFalse(violations.isEmpty());
 
+    }
+
+    @Test
+    void testAddBookDetails_InvalidRequest_ShouldReturnBadRequest() throws Exception {
+        BooksDTO booksDTO = new BooksDTO("978-3-16-148410-0", "KGF", "Harper Lee", 1960, true);
+
+        //when user tried to insert the book which is already exists
+        when(bookService.addBookDetails(any(Books.class)))
+                .thenThrow(new BookAlreadyExistsException("Book with ISBN " + booksDTO.getIsbnNo() + " already exists"));
+
+        // Assert and act: Perform the request and check the 400 status
+        mockMvc.perform(post("/api/Books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(booksDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Book with ISBN " + booksDTO.getIsbnNo() + " already exists"));
     }
 
     @Test
@@ -63,6 +78,7 @@ public class AddingBookTest {
         when(bookService.addBookDetails(any(Books.class)))
                 .thenReturn("Book added successfully");
 
+        // Assert and act: Perform the request and check the 200 status
         mockMvc.perform(post("/api/Books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(booksDTO)))
@@ -71,17 +87,18 @@ public class AddingBookTest {
     }
 
     @Test
-    void testAddBookDetails_InvalidRequest_ShouldReturnBadRequest() throws Exception {
-        BooksDTO booksDTO = new BooksDTO("978-3-16-148410-0", "KGF", "Harper Lee", 1960, true);
+    public void testAddBookDetails_InternalServerError_ShouldReturnInternalServerError() throws Exception {
 
-        when(bookService.addBookDetails(any(Books.class)))
-                .thenThrow(new BookAlreadyExistsException("Book with ISBN " + booksDTO.getIsbnNo() + " already exists"));
+        BooksDTO booksDTO = new BooksDTO("978-3-16-148450-0", "KGF", "Harper Lee", 1960, true);
 
+        when(bookService.addBookDetails(any(Books.class))).thenThrow(new RuntimeException("Internal Server Error"));
+
+        // Assert and act: Perform the request and check the 500 status
         mockMvc.perform(post("/api/Books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(booksDTO)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Book with ISBN " + booksDTO.getIsbnNo() + " already exists"));
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("An error occurred while adding a book"));
     }
 
 

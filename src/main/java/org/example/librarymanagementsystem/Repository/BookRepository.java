@@ -7,10 +7,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Repository
 @Transactional
 public interface BookRepository extends JpaRepository<Books, String> {
+
+    @Query("SELECT b FROM Books b WHERE b.isAvailable = true")
+    List<Books> findAllAvailableBooks();
+
     boolean existsBooksByIsbnNo(String ISBN);
 
     boolean existsByIsbnNoAndIsAvailableTrue(String isbnNO);

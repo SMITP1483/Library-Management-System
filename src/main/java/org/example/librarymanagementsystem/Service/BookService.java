@@ -31,10 +31,10 @@ public class BookService {
 
     }
 
-    public List<Books> getAllBooks() {
+    public List<Books> getAllAvailableBooks() {
         try {
             logger.info("\n\nRetrieving all books\n\n");
-            return bookRepository.findAll();
+            return bookRepository.findAllAvailableBooks();
         } catch (Exception e) {
             logger.error("An error occurred while retrieving the list of books", e);
             throw new RuntimeException("An error occurred while retrieving the list of books", e);

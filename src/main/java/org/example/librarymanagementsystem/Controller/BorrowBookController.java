@@ -48,7 +48,7 @@ public class BorrowBookController {
 
             return ResponseEntity.status(HttpStatus.OK).body(borrowRecordService.borrowBook(book, userDetailsDTO, borrowedRecordDTO.getBorrowedDate()));
 
-        } catch (BookNotAvailableException e) {
+        } catch (BookNotAvailableException | BookNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error(e.getMessage());

@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.*;
 import org.example.librarymanagementsystem.Controller.BorrowBookController;
 import org.example.librarymanagementsystem.Controller.ReturnBookController;
+import org.example.librarymanagementsystem.DAO.Books;
+import org.example.librarymanagementsystem.DAO.BorrowedRecord;
 import org.example.librarymanagementsystem.DTO.ReturnedBookDTO;
 import org.example.librarymanagementsystem.ExceptionHandler.BookNotFoundException;
 import org.example.librarymanagementsystem.Repository.BookRepository;
 import org.example.librarymanagementsystem.Repository.BorrowRecordRepository;
+import org.example.librarymanagementsystem.Service.BookService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,10 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -35,6 +38,9 @@ public class ReturningBookTest {
 
     @MockBean
     private ReturnBookController returnBookController;
+
+    @MockBean
+    private BookService bookService;
 
     @MockBean
     private BookRepository bookRepository;
@@ -58,46 +64,52 @@ public class ReturningBookTest {
         localValidatorFactoryBean.afterPropertiesSet();
 
         Set<ConstraintViolation<ReturnedBookDTO>> setOfViolations = localValidatorFactoryBean.validate(returnedBookDTO);
-        System.out.println(setOfViolations);
-        ;
 
-        // It will throw Constraint violation exception
-        assertThrows(ConstraintViolationException.class, () -> {
-            localValidatorFactoryBean.validate(returnedBookDTO).stream().findFirst().ifPresent(violation -> {
-                throw new ConstraintViolationException("ISBN-No must be in valid format (ISBN-10 or ISBN-13)", null);
-            });
-        });
+        //Assert for invalid method argument;
+        assertFalse(setOfViolations.isEmpty());
 
     }
 
     @Test
     public void ReturnBook_WithBorrowedRecordNotFound() throws Exception {
-        ReturnedBookDTO returnedBookDTO = new ReturnedBookDTO("98-99");
 
-        assertThrows(BookNotFoundException.class, () -> {
-            validator.validate(returnedBookDTO).stream().findFirst().ifPresent(violation -> {
-                throw new BookNotFoundException("Book not found");
-            });
-        });
+        ReturnedBookDTO returnedBookDTO = new ReturnedBookDTO("978-3-16-148410-0");
+
+        when(returnBookController.bookReturn(returnedBookDTO)).thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Requested Book record not found"));
+
+        //Act and assert: perform the request and check for the 404 status
+        mockMvc.perform(post("/api/ReturnBook")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(returnedBookDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Requested Book record not found"));
     }
 
-    @Test
-    public void ReturnBook_WithValidBorrowedRecordFound() throws Exception {
-
-        ReturnedBookDTO returnedBookDTO = new ReturnedBookDTO("0-201-63361-2");
-
-        when(returnBookController.bookReturn(returnedBookDTO)).thenReturn(ResponseEntity.ok("Book Returned"));
-    }
 
     @Test
     public void AfterBookReturned_BookIsAvailable() throws Exception {
+
         ReturnedBookDTO returnedBookDTO = new ReturnedBookDTO("98-99");
 
-        when(returnBookController.bookReturn(returnedBookDTO)).thenReturn(ResponseEntity.ok("Book Returned"));
-
-        when(bookRepository.existsByIsbnNoAndIsAvailableTrue(returnedBookDTO.getIsbnNo())).thenReturn(true);
+        //After returning the book is now available to user
+        when(bookRepository.updateBookAvailableStatus(returnedBookDTO.getIsbnNo(),true)).thenReturn(1);
 
     }
+
+    @Test
+    public void returnBook_InternalServerError_ShouldReturnException() throws Exception {
+        ReturnedBookDTO returnedBookDTO = new ReturnedBookDTO("978-3-16-148410-0");
+
+        when(returnBookController.bookReturn(returnedBookDTO)).thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred"));
+
+        //Assert and act: perform the request and check for the 500 status
+        mockMvc.perform(post("/api/ReturnBook")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(returnedBookDTO)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("An error occurred"));
+    }
+
 
     @Test
     public void UserWebRequestValidation() throws Exception {
@@ -105,6 +117,7 @@ public class ReturningBookTest {
 
         when(returnBookController.bookReturn(returnedBookDTO)).thenReturn(ResponseEntity.status(HttpStatus.OK).body("Book Returned"));
 
+        //Assert and act: perform the request and check for the 200 status
         mockMvc.perform(post("/api/ReturnBook")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(returnedBookDTO)))
