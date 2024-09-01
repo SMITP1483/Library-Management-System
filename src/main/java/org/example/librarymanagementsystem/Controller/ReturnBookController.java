@@ -44,7 +44,8 @@ public class ReturnBookController {
             bookRepository.updateBookAvailableStatus(returnedBookDTO.getIsbnNo(), true);
             recordRepository.updateBorrowedRecord(returnedBookDTO.getReturnedDate(),isbnNo);
             return ResponseEntity.status(HttpStatus.OK).body("Book Returned");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }

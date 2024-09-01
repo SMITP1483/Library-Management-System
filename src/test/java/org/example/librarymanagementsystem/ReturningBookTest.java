@@ -1,5 +1,6 @@
 package org.example.librarymanagementsystem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.*;
 import org.example.librarymanagementsystem.Controller.BorrowBookController;
 import org.example.librarymanagementsystem.Controller.ReturnBookController;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -20,6 +23,9 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReturnBookController.class)
 public class ReturningBookTest {
@@ -38,6 +44,9 @@ public class ReturningBookTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper mapper;
 
 
     @Test
@@ -88,6 +97,19 @@ public class ReturningBookTest {
 
         when(bookRepository.existsByIsbnNoAndIsAvailableTrue(returnedBookDTO.getIsbnNo())).thenReturn(true);
 
+    }
+
+    @Test
+    public void UserWebRequestValidation() throws Exception {
+           ReturnedBookDTO returnedBookDTO = new ReturnedBookDTO("978-3-16-148410-0");
+
+        when(returnBookController.bookReturn(returnedBookDTO)).thenReturn(ResponseEntity.status(HttpStatus.OK).body("Book Returned"));
+
+        mockMvc.perform(post("/api/ReturnBook")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(returnedBookDTO)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Book Returned"));
     }
 
 
