@@ -57,7 +57,7 @@ A Java Spring Boot-based Library Management System that allows users to borrow a
    
    - Method: 'POST'
    - EndPoint: 'api/Books'
-   - Description: Adds a new book to the database.
+   - Description: Adding a new book to the database with InvalidArgument, BookAlreadyExists, InternalServerError Validation.
    - Request Body: JSON object representing the book.
 ``` bash
     {
@@ -73,13 +73,13 @@ A Java Spring Boot-based Library Management System that allows users to borrow a
    
    - Method: 'GET'
    - EndPoint: 'api/Books'
-   - Description: Get all available books from the database.
+   - Description: Get all available books from the database with NoBookFound, InternalServerError Validation.
 
 3. Borrow Book
 
    - Method: 'POST'
    - EndPoint: 'api/BorrowBook'
-   - Description: Borrow a boook
+   - Description: Borrow a book with InvalidArgument, BookNotFound, BookNotAvailable, InternalServerError Validation
    - Request Body: JSON object representing the borrow details.
 ``` bash
     {
@@ -99,7 +99,7 @@ A Java Spring Boot-based Library Management System that allows users to borrow a
 
    - Method: 'POST'
    - EndPoint: 'api/ReturnBook'
-   - Description: Return a boook
+   - Description: Return a book with BorrowRecordNotFound, InternalServerError Validation
    - Request Body: JSON object representing the book isbn no. to update the book availibility status.
 ``` bash
     {
