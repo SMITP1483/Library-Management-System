@@ -25,8 +25,6 @@ public class BorrowRecordService {
     @Autowired
     private UserDetailsRepository userDetailsRepository;
 
-    @Autowired
-    private BookService bookService;
 
     public String borrowBook(Books book, UserDetailsDTO userDetailsDTO, Date borrowedDate) {
         if (!bookRepository.existsBooksByIsbnNo(book.getIsbnNo()))
