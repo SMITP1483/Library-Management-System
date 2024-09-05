@@ -7,12 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UserDetailsDTO {
-
-    private Long id;
+public class NewUserDetailsDTO{
 
     @NotEmpty(message = "First name cannot empty")
     @Size(max = 50, message = "First name cannot exceed 50 characters")
@@ -26,9 +25,4 @@ public class UserDetailsDTO {
     @Email(message = "Invalid email format")
     private String email;
 
-    public UserDetailsDTO(String firstName, String lastName, String email) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-    }
 }

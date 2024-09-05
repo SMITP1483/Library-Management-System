@@ -12,9 +12,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDetails {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "UserDetails_Id_Generator")
+    @SequenceGenerator(name = "UserDetails_Id_Generator", allocationSize = 1)
     private Long id;
+
     private String firstName;
     private String lastName;
     private String email;

@@ -14,6 +14,10 @@ import java.util.List;
 @Transactional
 public interface BookRepository extends JpaRepository<Books, String> {
 
+
+    @Query("SELECT b FROM Books b WHERE LOWER(b.title) like LOWER(CONCAT('%',:title,'%')) AND b.isAvailable = true")
+    List<Books> findAvailableBooksByTitle(String title);
+
     @Query("SELECT b FROM Books b WHERE b.isAvailable = true")
     List<Books> findAllAvailableBooks();
 

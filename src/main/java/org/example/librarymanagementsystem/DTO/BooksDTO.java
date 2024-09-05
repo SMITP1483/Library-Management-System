@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,6 +19,7 @@ public class BooksDTO {
     @Size(max = 50, message = "Author name should not exceed 50 characters")
     private String title;
 
+    @NotEmpty(message = "Author name should not be empty")
     @Size(max = 50, message = "Author name should not exceed 50 characters")
     private String authorName;
 
@@ -28,8 +28,5 @@ public class BooksDTO {
     private int publicationYear;
 
     private boolean isAvailable;
-
-
-
 
 }

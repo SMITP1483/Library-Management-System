@@ -2,6 +2,7 @@ package org.example.librarymanagementsystem.Service;
 
 import org.example.librarymanagementsystem.DAO.Books;
 import org.example.librarymanagementsystem.ExceptionHandler.BookAlreadyExistsException;
+import org.example.librarymanagementsystem.ExceptionHandler.BookNotFoundException;
 import org.example.librarymanagementsystem.Repository.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public class BookService {
     public String addBookDetails(Books book) {
 
         if (bookRepository.existsBooksByIsbnNo(book.getIsbnNo())) {
-            throw new BookAlreadyExistsException("Book with ISBN " + book.getIsbnNo() + " already exists");
+            throw new BookAlreadyExistsException("Book with ISBN " + book.getIsbnNo() + " is already exists");
         } else {
             logger.info("Adding book details for ISBN: {}", book.getIsbnNo());
             bookRepository.save(book);
@@ -39,6 +40,15 @@ public class BookService {
             logger.error("An error occurred while retrieving the list of books", e);
             throw new RuntimeException("An error occurred while retrieving the list of books", e);
         }
+    }
+
+    public List<Books> findBooksByTitleContaining(String title) {
+
+        List<Books> booksList = bookRepository.findAvailableBooksByTitle(title);
+        if (booksList.isEmpty())
+            throw new BookNotFoundException("Request Book is not found");
+        return booksList;
+
     }
 
 }

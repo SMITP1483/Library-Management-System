@@ -1,13 +1,14 @@
 package org.example.librarymanagementsystem.Controller;
 
 import jakarta.validation.Valid;
-import org.example.librarymanagementsystem.DAO.Books;
 import org.example.librarymanagementsystem.DTO.BorrowedRecordDTO;
-import org.example.librarymanagementsystem.DTO.UserDetailsDTO;
+import org.example.librarymanagementsystem.DTO.ExistingUserDetailsDTO;
+import org.example.librarymanagementsystem.DTO.NewUserDetailsDTO;
 import org.example.librarymanagementsystem.ExceptionHandler.BookNotAvailableException;
 import org.example.librarymanagementsystem.ExceptionHandler.BookNotFoundException;
+import org.example.librarymanagementsystem.ExceptionHandler.UserAlreadyExistsException;
+import org.example.librarymanagementsystem.ExceptionHandler.UserRecordNotFoundException;
 import org.example.librarymanagementsystem.Repository.BookRepository;
-import org.example.librarymanagementsystem.Repository.UserDetailsRepository;
 import org.example.librarymanagementsystem.Service.BorrowRecordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/BorrowBook")
@@ -33,26 +31,46 @@ public class BorrowBookController {
     @Autowired
     private BookRepository bookRepository;
 
-    @Autowired
-    private UserDetailsRepository userDetailsRepository;
 
     @PostMapping
-    public ResponseEntity<String> borrowBook(@Valid @RequestBody BorrowedRecordDTO borrowedRecordDTO) {
+    public ResponseEntity<String> borrowBookWithUserDetails(@Valid @RequestBody BorrowedRecordDTO borrowedRecordDTO) {
+
         try {
-            Books book = bookRepository.findByIsbnNo(borrowedRecordDTO.getBookIsbnNo());
+            String responseMessage;
+            if (borrowedRecordDTO.getUserDetails() != null) {
+                ExistingUserDetailsDTO existingUser = borrowedRecordDTO.getUserDetails();
+                responseMessage = borrowRecordService.borrowBook(borrowedRecordDTO.getBookIsbnNo(), existingUser.getUserId(), borrowedRecordDTO.getBorrowedDate());
+            } else if (borrowedRecordDTO.getNewUserDetails() != null) {
+                NewUserDetailsDTO newUser = borrowedRecordDTO.getNewUserDetails();
+                responseMessage = borrowRecordService.borrowBook(borrowedRecordDTO.getBookIsbnNo(), newUser, borrowedRecordDTO.getBorrowedDate());
+            } else {
+                throw new IllegalArgumentException("Invalid user details provided");
+            }
 
-            if (book == null)
-                throw new BookNotFoundException("Book not found");
+            return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
 
-            UserDetailsDTO userDetailsDTO = borrowedRecordDTO.getUserDetails();
+        } catch (UserRecordNotFoundException | BookNotAvailableException | BookNotFoundException e) {
+            logger.info("Not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (UserAlreadyExistsException e) {
+            logger.warn("User already exists. {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Internal Server Error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while borrowing the book. Please try again later.");
+        }
+    }
 
-            return ResponseEntity.status(HttpStatus.OK).body(borrowRecordService.borrowBook(book, userDetailsDTO, borrowedRecordDTO.getBorrowedDate()));
-
-        } catch (BookNotAvailableException | BookNotFoundException e) {
+    @PostMapping("/UserRecord")
+    public ResponseEntity<String> borrowUserRecord(@RequestParam String isbnNo, @RequestParam Long userId) {
+        try {
+            String message = borrowRecordService.BookBorrowCountByUserId(isbnNo, userId) + " times borrowed this book (ISBN No: " + isbnNo + ")\n";
+            return ResponseEntity.status(HttpStatus.OK).body(message);
+        } catch (UserRecordNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while borrowing the book");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the request");
         }
     }
 }

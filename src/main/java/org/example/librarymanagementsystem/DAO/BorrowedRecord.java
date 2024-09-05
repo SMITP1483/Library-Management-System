@@ -13,7 +13,8 @@ import java.util.Date;
 @Data
 public class BorrowedRecord {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BorrowedRecord_Id_Generator")
+    @SequenceGenerator(name = "BorrowedRecord_Id_Generator", allocationSize = 1)
     private Long id;
 
     @ManyToOne
