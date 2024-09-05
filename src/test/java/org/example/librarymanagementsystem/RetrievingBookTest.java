@@ -1,28 +1,24 @@
 package org.example.librarymanagementsystem;
 
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.example.librarymanagementsystem.Controller.BookController;
 import org.example.librarymanagementsystem.DAO.Books;
+import org.example.librarymanagementsystem.Repository.BookRepository;
 import org.example.librarymanagementsystem.Service.BookService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.awt.print.Book;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookController.class)
 public class RetrievingBookTest {
@@ -35,6 +31,9 @@ public class RetrievingBookTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private BookRepository bookRepository;
 
     @Test
     public void GetAllAvailableBooks_NoBooks_ShouldReturnNotFound() throws Exception {
@@ -59,8 +58,19 @@ public class RetrievingBookTest {
     @Test
     public void GetAllAvailableBooks_ShouldReturnOk() throws Exception {
 
-        Set<ConstraintViolation<List<Books>>> setOfViolations =validator.validate(bookService.getAllAvailableBooks());
+        Books book1 = new Books("0-123-45678-9", "Clean Code", "Robert C. Martin", 2008);
+        Books book2 = new Books("978-0-596-52068-7", "Learning Python", "Mark Lutz", 2013);
 
-        assertTrue(setOfViolations.isEmpty());
+        //Mock behaviour of the repository
+        when(bookService.getAllAvailableBooks()).thenReturn(List.of(book1, book2));
+
+        //Act and assert
+        mockMvc.perform(get("/api/Books"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].isbnNo").value(book1.getIsbnNo()))
+                .andExpect(jsonPath("$[1].isbnNo").value(book2.getIsbnNo()));
     }
+
 }

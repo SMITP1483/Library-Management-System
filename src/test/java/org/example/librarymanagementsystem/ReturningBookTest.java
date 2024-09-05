@@ -2,12 +2,8 @@ package org.example.librarymanagementsystem;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.*;
-import org.example.librarymanagementsystem.Controller.BorrowBookController;
 import org.example.librarymanagementsystem.Controller.ReturnBookController;
-import org.example.librarymanagementsystem.DAO.Books;
-import org.example.librarymanagementsystem.DAO.BorrowedRecord;
 import org.example.librarymanagementsystem.DTO.ReturnedBookDTO;
-import org.example.librarymanagementsystem.ExceptionHandler.BookNotFoundException;
 import org.example.librarymanagementsystem.Repository.BookRepository;
 import org.example.librarymanagementsystem.Repository.BorrowRecordRepository;
 import org.example.librarymanagementsystem.Service.BookService;
@@ -24,7 +20,6 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;

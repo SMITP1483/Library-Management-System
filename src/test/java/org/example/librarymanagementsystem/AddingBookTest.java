@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import org.example.librarymanagementsystem.Controller.BookController;
 import org.example.librarymanagementsystem.DAO.Books;
 import org.example.librarymanagementsystem.DTO.BooksDTO;
@@ -30,11 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(BookController.class)
 public class AddingBookTest {
 
-    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    private final Validator validator = factory.getValidator();
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @MockBean
     BookService bookService;
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,7 +50,7 @@ public class AddingBookTest {
         // Validating the BooksDTO object
         Set<ConstraintViolation<BooksDTO>> violations = validator.validate(booksDTO);
 
-        assertFalse(violations.isEmpty());
+        assertFalse(violations.isEmpty(), violations.toString());
 
     }
 
@@ -98,7 +97,7 @@ public class AddingBookTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(booksDTO)))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().string("An error occurred while adding a book"));
+                .andExpect(content().string("An error occurred while processing your request"));
     }
 
 
